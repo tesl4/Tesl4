@@ -14,6 +14,12 @@ ID3D11Device*			 		g_pd3dDevice = nullptr;
 ID3D11DeviceContext*			g_pImmediateContext = nullptr;
 IDXGISwapChain*		 			g_pSwapChain = nullptr;
 ID3D11RenderTargetView*			g_pRenderTargetView = nullptr;
+ID3D11PixelShader*				g_pPixelShader = nullptr;
+ID3D11VertexShader*				g_pVertexShader = nullptr;
+ID3D11InputLayout*				g_pVertexLayout = nullptr;
+ID3D11Buffer*					g_pVertexBuffer = nullptr;
+
+
 
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
@@ -22,11 +28,10 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 HRESULT InitDevice();
 void Render();
 void CleanDevice();
-
+HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobs);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -72,7 +77,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 
     }
-
 	CleanDevice();
 
     return (int) msg.wParam;
@@ -134,7 +138,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    ShowWindow(g_hWnd, nCmdShow);
-   //UpdateWindow(g_hWnd);
+   UpdateWindow(g_hWnd);
 
    return TRUE;
 }
@@ -169,26 +173,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-// 정보 대화 상자의 메시지 처리기입니다.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
-}
-
 HRESULT InitDevice()
 {
 	HRESULT hr = S_OK;
@@ -199,13 +183,9 @@ HRESULT InitDevice()
 	UINT height = rc.bottom - rc.top;
 
 	UINT createDeviceFlags = 0;
-#ifdef DEBUG
+#ifdef _DEBUG
 	createDeviceFlags = D3D11_CREATE_DEVICE_DEBUG;
-
 #endif // DEBUG
-
-
-
 
 	D3D_DRIVER_TYPE driverTypes[] =
 	{
@@ -220,7 +200,6 @@ HRESULT InitDevice()
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0
-
 	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
@@ -242,7 +221,7 @@ HRESULT InitDevice()
 	{
 		g_driverType = driverTypes[i];
 		hr = D3D11CreateDeviceAndSwapChain(nullptr, g_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, D3D11_SDK_VERSION,
-											&sd, &g_pSwapChain, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext);
+			&sd, &g_pSwapChain, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext);
 		if (SUCCEEDED(hr))
 		{
 			break;
@@ -274,7 +253,71 @@ HRESULT InitDevice()
 	vp.TopLeftY = 0;
 	g_pImmediateContext->RSSetViewports(1, &vp);
 
+	ID3DBlob* pVSBlob = nullptr;
+	hr = CompileShaderFromFile(L"tutorial.fx", "VS", "vs_4_0", &pVSBlob);
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+		return hr;
+	}
 
+	hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShader);
+	if (FAILED(hr))
+	{
+		pVSBlob->Release();
+		return hr;
+	}
+
+	D3D11_INPUT_ELEMENT_DESC layout[] = {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0};
+	UINT numElements = ARRAYSIZE(layout);
+	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
+	pVSBlob->Release();
+	if (FAILED(hr))
+		return hr;
+	
+	g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
+	
+	ID3DBlob* pPSBlob = nullptr;
+	hr = CompileShaderFromFile(L"tutorial.fx", "PS", "ps_4_0", &pPSBlob);
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+		return hr;
+	}
+
+	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader);
+	if (FAILED(hr))
+	{
+		pVSBlob->Release();
+		return hr;
+	}
+
+	TVertex vertices[] =
+	{
+		XMFLOAT3(0.0f, 0.5f, 0.5f),
+		XMFLOAT3(0.5f, -0.5f, 0.5f),
+		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+	};
+
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(TVertex)* 3;
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+	
+	D3D11_SUBRESOURCE_DATA InitData;
+	ZeroMemory(&InitData, sizeof(InitData));
+	InitData.pSysMem = vertices;
+	hr = g_pd3dDevice->CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
+	if (FAILED(hr))
+		return hr;
+
+	UINT stride = sizeof(TVertex);
+	UINT offset = 0;
+	g_pImmediateContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+
+	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	return S_OK;
 }
@@ -285,16 +328,48 @@ void Render()
 	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, clearColor);
 
 	//Render Anything
+	g_pImmediateContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pImmediateContext->PSSetShader(g_pPixelShader, nullptr, 0);
+	g_pImmediateContext->Draw(3, 0);
+	//Render End
 
 	g_pSwapChain->Present(0, 0);
 }
+
 
 void CleanDevice()
 {
 	if (&g_pImmediateContext) g_pImmediateContext->ClearState();
 	
-	if (&g_pRenderTargetView) g_pRenderTargetView->Release();
-	if (&g_pSwapChain	) g_pSwapChain->Release();
-	if (&g_pImmediateContext) g_pImmediateContext->Release();
-	if (&g_pd3dDevice) g_pd3dDevice->Release();
+	if (&g_pVertexBuffer)		g_pVertexBuffer->Release();
+	if (&g_pVertexLayout)		g_pVertexLayout->Release();
+	if (&g_pVertexShader)		g_pVertexShader->Release();
+	if (&g_pPixelShader)		g_pPixelShader->Release();
+	if (&g_pRenderTargetView)	g_pRenderTargetView->Release();
+	if (&g_pSwapChain	)		g_pSwapChain->Release();
+	if (&g_pImmediateContext)	g_pImmediateContext->Release();
+	if (&g_pd3dDevice)			g_pd3dDevice->Release();
+}
+
+HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob ** ppBlobs)
+{
+	HRESULT hr = S_OK;
+	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined(DEBUG) || defined(_DEBUG)
+	dwShaderFlags |= D3DCOMPILE_DEBUG;
+#endif
+	ID3DBlob* pErrorBlob = nullptr;
+	hr = D3DX11CompileFromFile(szFileName, nullptr, nullptr, szEntryPoint, szShaderModel, dwShaderFlags, 0, nullptr, ppBlobs, &pErrorBlob, nullptr);
+	if (FAILED(hr))
+	{
+		if (pErrorBlob != nullptr)
+		{
+			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+		}
+		if (pErrorBlob) pErrorBlob->Release();
+		return hr;
+	}
+	if (pErrorBlob) pErrorBlob->Release();	
+
+	return S_OK;
 }

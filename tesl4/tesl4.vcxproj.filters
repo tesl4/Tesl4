@@ -30,7 +30,7 @@
     <ClInclude Include="tesl4.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="TVertex.h">
+    <ClInclude Include="structs.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>

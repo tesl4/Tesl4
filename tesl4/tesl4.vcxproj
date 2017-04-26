@@ -152,7 +152,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tesl4.h" />
-    <ClInclude Include="TVertex.h" />
+    <ClInclude Include="structs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
