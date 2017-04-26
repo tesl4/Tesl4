@@ -33,10 +33,7 @@ void Render();
 void CleanDevice();
 HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobs);
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR    lpCmdLine, _In_ int       nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -49,22 +46,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MyRegisterClass(hInstance);
 
     // 응용 프로그램 초기화를 수행합니다.
-    if (!InitInstance (hInstance, nCmdShow))
+    if (FAILED(InitInstance(hInstance, nCmdShow)))
     {
         return FALSE;
     }
 
     //HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESL4));
-    MSG msg;
-
+	
 	if (FAILED(InitDevice()))
 	{
 		CleanDevice();
 		return 0;
 	}
 
-    // 기본 메시지 루프입니다.
-    while (GetMessage(&msg, nullptr, 0, 0))
+	MSG msg = { 0 };
+	// 기본 메시지 루프입니다.
+	while (WM_QUIT != msg.message)
     {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
@@ -75,8 +72,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			Render();
 		}
-
     }
+
 	CleanDevice();
 
     return (int) msg.wParam;
@@ -108,7 +105,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
-    return RegisterClassExW(&wcex);
+    return RegisterClassEx(&wcex);
 }
 
 //
@@ -124,13 +121,12 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
-
-   g_hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
-
    RECT rc = { 0, 0, 640, 480 };
    AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
+   g_hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+	   CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+	   nullptr);
 
    if (!g_hWnd)
    {
@@ -138,7 +134,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    ShowWindow(g_hWnd, nCmdShow);
-   UpdateWindow(g_hWnd);
+   //UpdateWindow(g_hWnd);
 
    return TRUE;
 }
@@ -183,8 +179,9 @@ HRESULT InitDevice()
 	UINT height = rc.bottom - rc.top;
 
 	UINT createDeviceFlags = 0;
-#ifdef _DEBUG
+#ifdef DEBUG
 	createDeviceFlags = D3D11_CREATE_DEVICE_DEBUG;
+
 #endif // DEBUG
 
 	D3D_DRIVER_TYPE driverTypes[] =
@@ -200,6 +197,7 @@ HRESULT InitDevice()
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0
+
 	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
@@ -244,7 +242,7 @@ HRESULT InitDevice()
 
 	g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, nullptr);
 
-	CD3D11_VIEWPORT vp;
+	D3D11_VIEWPORT vp;
 	vp.Width = (FLOAT)width;
 	vp.Height = (FLOAT)height;
 	vp.MinDepth = 0.0f;
@@ -268,7 +266,10 @@ HRESULT InitDevice()
 		return hr;
 	}
 
-	D3D11_INPUT_ELEMENT_DESC layout[] = {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0};
+	D3D11_INPUT_ELEMENT_DESC layout[] = 
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
 	UINT numElements = ARRAYSIZE(layout);
 	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
 	pVSBlob->Release();
@@ -332,6 +333,7 @@ void Render()
 	g_pImmediateContext->PSSetShader(g_pPixelShader, nullptr, 0);
 	g_pImmediateContext->Draw(3, 0);
 	//Render End
+
 
 	g_pSwapChain->Present(0, 0);
 }

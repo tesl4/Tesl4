@@ -55,4 +55,9 @@
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="tutorial.fx">
+      <Filter>리소스 파일</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>
