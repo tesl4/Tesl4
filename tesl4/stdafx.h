@@ -9,6 +9,12 @@
 
 // Windows 헤더 파일:
 #include<windows.h>
+//d3d
+#include <d3d11.h>
+#include <d3dx11.h>
+#include <d3dcompiler.h>
+#include <xnamath.h>
+
 
 // C 런타임 헤더 파일입니다.
 #include <stdlib.h>
@@ -16,11 +22,6 @@
 #include <memory.h>
 #include <tchar.h>
 
-//d3d
-#include <d3d11.h>
-#include <d3dx11.h>
-#include <d3dcompiler.h>
-#include <xnamath.h>
 
 //Tesl4 Custom
 #include "structs.h"

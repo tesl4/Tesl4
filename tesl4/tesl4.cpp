@@ -5,6 +5,7 @@
 
 #define MAX_LOADSTRING 100
 
+
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 HWND g_hWnd;
@@ -25,58 +26,48 @@ WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 
 // 이 코드 모듈에 들어 있는 함수의 정방향 선언입니다.
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
+HRESULT             InitInstance(HINSTANCE hInstance, int nCmdShow);
+HRESULT				InitDevice();
+void				CleanDevice();
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-HRESULT InitDevice();
-void Render();
-void CleanDevice();
+void				Render();
 HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobs);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR    lpCmdLine, _In_ int       nCmdShow)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: 여기에 코드를 입력합니다.
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // 전역 문자열을 초기화합니다.
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_TESL4, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadStringW(hInstance, IDC_TESL4, szWindowClass, MAX_LOADSTRING);
+	if (FAILED(InitInstance(hInstance, nCmdShow)))
+		return 0;
 
-    // 응용 프로그램 초기화를 수행합니다.
-    if (FAILED(InitInstance(hInstance, nCmdShow)))
-    {
-        return FALSE;
-    }
-
-    //HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESL4));
-	
 	if (FAILED(InitDevice()))
 	{
 		CleanDevice();
 		return 0;
 	}
 
+	// Main message loop
 	MSG msg = { 0 };
-	// 기본 메시지 루프입니다.
 	while (WM_QUIT != msg.message)
-    {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
 		else
 		{
 			Render();
 		}
-    }
+	}
 
 	CleanDevice();
 
-    return (int) msg.wParam;
+	return (int)msg.wParam;
 }
 
 
@@ -86,12 +77,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 //
 //  목적: 창 클래스를 등록합니다.
 //
-ATOM MyRegisterClass(HINSTANCE hInstance)
+HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-    WNDCLASSEXW wcex;
+    WNDCLASSEX wcex;
 
     wcex.cbSize = sizeof(WNDCLASSEX);
-
     wcex.style          = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
@@ -105,39 +95,26 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
-    return RegisterClassEx(&wcex);
+	RegisterClassEx(&wcex);
+
+	hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
+	RECT rc = { 0, 0, 640, 480 };
+	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
+
+	g_hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+		nullptr);
+
+	if (!g_hWnd)
+	{
+		return FALSE;
+	}
+
+	ShowWindow(g_hWnd, nCmdShow);
+
+    return S_OK;
 }
 
-//
-//   함수: InitInstance(HINSTANCE, int)
-//
-//   목적: 인스턴스 핸들을 저장하고 주 창을 만듭니다.
-//
-//   설명:
-//
-//        이 함수를 통해 인스턴스 핸들을 전역 변수에 저장하고
-//        주 프로그램 창을 만든 다음 표시합니다.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-   hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
-   RECT rc = { 0, 0, 640, 480 };
-   AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-
-   g_hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-	   CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
-	   nullptr);
-
-   if (!g_hWnd)
-   {
-      return FALSE;
-   }
-
-   ShowWindow(g_hWnd, nCmdShow);
-   //UpdateWindow(g_hWnd);
-
-   return TRUE;
-}
 
 //
 //  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -271,6 +248,7 @@ HRESULT InitDevice()
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	UINT numElements = ARRAYSIZE(layout);
+
 	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
 	pVSBlob->Release();
 	if (FAILED(hr))
@@ -287,9 +265,9 @@ HRESULT InitDevice()
 	}
 
 	hr = g_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &g_pPixelShader);
+	pPSBlob->Release();
 	if (FAILED(hr))
 	{
-		pVSBlob->Release();
 		return hr;
 	}
 
@@ -306,6 +284,7 @@ HRESULT InitDevice()
 	bd.ByteWidth = sizeof(TVertex)* 3;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
+	bd.MiscFlags = 0;
 	
 	D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
@@ -341,37 +320,41 @@ void Render()
 
 void CleanDevice()
 {
-	if (&g_pImmediateContext) g_pImmediateContext->ClearState();
-	
-	if (&g_pVertexBuffer)		g_pVertexBuffer->Release();
-	if (&g_pVertexLayout)		g_pVertexLayout->Release();
-	if (&g_pVertexShader)		g_pVertexShader->Release();
-	if (&g_pPixelShader)		g_pPixelShader->Release();
-	if (&g_pRenderTargetView)	g_pRenderTargetView->Release();
-	if (&g_pSwapChain	)		g_pSwapChain->Release();
-	if (&g_pImmediateContext)	g_pImmediateContext->Release();
-	if (&g_pd3dDevice)			g_pd3dDevice->Release();
+	if (g_pImmediateContext) g_pImmediateContext->ClearState();
+
+	if (g_pVertexBuffer) g_pVertexBuffer->Release();
+	if (g_pVertexLayout) g_pVertexLayout->Release();
+	if (g_pVertexShader) g_pVertexShader->Release();
+	if (g_pPixelShader) g_pPixelShader->Release();
+	if (g_pRenderTargetView) g_pRenderTargetView->Release();
+	if (g_pSwapChain) g_pSwapChain->Release();
+	if (g_pImmediateContext) g_pImmediateContext->Release();
+	if (g_pd3dDevice) g_pd3dDevice->Release();
 }
 
 HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob ** ppBlobs)
 {
 	HRESULT hr = S_OK;
+
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined( DEBUG ) || defined( _DEBUG )
+	// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
+	// Setting this flag improves the shader debugging experience, but still allows 
+	// the shaders to be optimized and to run exactly the way they will run in 
+	// the release configuration of this program.
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
-	ID3DBlob* pErrorBlob = nullptr;
-	hr = D3DX11CompileFromFile(szFileName, nullptr, nullptr, szEntryPoint, szShaderModel, dwShaderFlags, 0, nullptr, ppBlobs, &pErrorBlob, nullptr);
+
+	ID3DBlob* pErrorBlob;
+	hr = D3DX11CompileFromFile(szFileName, NULL, NULL, szEntryPoint, szShaderModel, dwShaderFlags, 0, NULL, ppBlobs, &pErrorBlob, NULL);
 	if (FAILED(hr))
 	{
-		if (pErrorBlob != nullptr)
-		{
+		if (pErrorBlob != NULL)
 			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-		}
 		if (pErrorBlob) pErrorBlob->Release();
 		return hr;
 	}
-	if (pErrorBlob) pErrorBlob->Release();	
+	if (pErrorBlob) pErrorBlob->Release();
 
 	return S_OK;
 }
