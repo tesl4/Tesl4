@@ -166,7 +166,6 @@ HRESULT InitDevice()
 	UINT createDeviceFlags = 0;
 #ifdef _DEBUG
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-
 #endif // DEBUG
 
 	D3D_DRIVER_TYPE driverTypes[] =
@@ -204,36 +203,44 @@ HRESULT InitDevice()
 		g_driverType = driverTypes[i];
 		hr = D3D11CreateDeviceAndSwapChain(nullptr, g_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels, D3D11_SDK_VERSION,
 			&sd, &g_pSwapChain, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext);
-		if (SUCCEEDED(hr))
-		{
-			break;
-		}
+		if (SUCCEEDED(hr)) break;
 	}
 	if (FAILED(hr)) return hr;
 
 	ID3D11Texture2D* pBackbuffer = nullptr;
 	hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackbuffer);
 	if (FAILED(hr)) return hr;
+
 	hr = g_pd3dDevice->CreateRenderTargetView(pBackbuffer, nullptr, &g_pRenderTargetView);
 	pBackbuffer->Release();
 	if (FAILED(hr)) return hr;
 
-	/*D3D11_TEXTURE2D_DESC descDepth;
+	D3D11_TEXTURE2D_DESC descDepth;
 	ZeroMemory(&descDepth, sizeof(descDepth));
 	descDepth.Width = width;
 	descDepth.Height = height;
 	descDepth.MipLevels = 1;
-	descDepth.MipLevels = 1;
+	descDepth.ArraySize = 1;
 	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	descDepth.SampleDesc.Count = 1;
 	descDepth.SampleDesc.Quality = 0;
 	descDepth.Usage = D3D11_USAGE_DEFAULT;
-	descDepth.BindFlags = 0;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.CPUAccessFlags = 0;
 	descDepth.MiscFlags = 0;
-	hr = g_pd3dDevice->CreateTextrue2D(&descDepth, nullptr, &g_pD)
+	hr = g_pd3dDevice->CreateTexture2D(&descDepth, nullptr, &g_pDepthStencil);
+	if (FAILED(hr)) return hr;
 
-*/
-	g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, nullptr);
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	ZeroMemory(&descDSV, sizeof(descDSV));
+	descDSV.Format = descDepth.Format;
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0;
+	hr = g_pd3dDevice->CreateDepthStencilView(g_pDepthStencil, &descDSV, &g_pDepthStencilView);
+	if (FAILED(hr)) return hr;
+
+	g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
 	
 	D3D11_VIEWPORT vp;
@@ -249,11 +256,12 @@ HRESULT InitDevice()
 	hr = CompileShaderFromFile(L"tutorial.fx", "VS", "vs_4_0", &pVSBlob);
 	if (FAILED(hr))
 	{
-		MessageBox(NULL, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
+		MessageBox(nullptr, L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
 		return hr;
 	}
 
-	hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShader);
+
+		hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &g_pVertexShader);
 	if (FAILED(hr))
 	{
 		pVSBlob->Release();
@@ -270,7 +278,7 @@ HRESULT InitDevice()
 	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
 											pVSBlob->GetBufferSize(), &g_pVertexLayout);
 	pVSBlob->Release();
-	if (FAILED(hr))
+	if (FAILED(hr))	
 		return hr;
 	
 	g_pImmediateContext->IASetInputLayout(g_pVertexLayout);
@@ -301,7 +309,6 @@ HRESULT InitDevice()
 		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
 		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
 	};
-
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -344,7 +351,6 @@ HRESULT InitDevice()
 	bd.ByteWidth = sizeof(WORD) * 36;
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
-	bd.MiscFlags= 0;
 	InitData.pSysMem = indices;
 	hr = g_pd3dDevice->CreateBuffer(&bd, &InitData, &g_pIndexBuffer);
 	if (FAILED(hr)) return hr;
@@ -357,11 +363,11 @@ HRESULT InitDevice()
 	bd.ByteWidth = sizeof(TConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	bd.MiscFlags = 0;
 	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
 	if (FAILED(hr)) return hr;
 	
 	g_World_0 = XMMatrixIdentity();
+	g_World_1 = XMMatrixIdentity();
 
 	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
 	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -390,14 +396,23 @@ void Render()
 
 	g_World_0 = XMMatrixRotationY(t);
 
+	XMMATRIX mSpin = XMMatrixRotationZ(-t);
+	XMMATRIX mOrbit = XMMatrixRotationY(-t * 2.0f);
+	XMMATRIX mTranslate = XMMatrixTranslation(-4.0f, 0.0f, 0.0f);
+	XMMATRIX mScale = XMMatrixScaling(0.3f, 0.3f, 0.3f);
+
+	g_World_1 = mScale * mSpin * mTranslate * mOrbit;
+
 	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
 
-	TConstantBuffer cb;
-	cb.mWorld = XMMatrixTranspose(g_World_0);
-	cb.mView = XMMatrixTranspose(g_View);
-	cb.mProjection = XMMatrixTranspose(g_Projection);
-	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
+	g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	TConstantBuffer cb0;
+	cb0.mWorld = XMMatrixTranspose(g_World_0);
+	cb0.mView = XMMatrixTranspose(g_View);
+	cb0.mProjection = XMMatrixTranspose(g_Projection);
+	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0,  nullptr, &cb0, 0, 0);
 
 
 
@@ -407,6 +422,15 @@ void Render()
 	g_pImmediateContext->PSSetShader(g_pPixelShader, nullptr, 0);
 	g_pImmediateContext->DrawIndexed(36, 0, 0);
 	//Render End
+
+
+	TConstantBuffer cb1;
+	cb1.mWorld = XMMatrixTranspose(g_World_1);
+	cb1.mView = XMMatrixTranspose(g_View);
+	cb1.mProjection = XMMatrixTranspose(g_Projection);
+	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb1, 0, 0);
+	
+	g_pImmediateContext->DrawIndexed(36, 0, 0);
 
 
 	g_pSwapChain->Present(0, 0);
