@@ -7,18 +7,26 @@
 
 
 // 전역 변수:
-HINSTANCE hInst;                                // 현재 인스턴스입니다.
-HWND g_hWnd;
+HINSTANCE						hInst;                                // 현재 인스턴스입니다.
+HWND							g_hWnd;
 D3D_DRIVER_TYPE					g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL				g_featureLevel = D3D_FEATURE_LEVEL_11_0;
 ID3D11Device*			 		g_pd3dDevice = nullptr;
 ID3D11DeviceContext*			g_pImmediateContext = nullptr;
 IDXGISwapChain*		 			g_pSwapChain = nullptr;
 ID3D11RenderTargetView*			g_pRenderTargetView = nullptr;
+ID3D11Texture2D*				g_pDepthStencil = nullptr;
+ID3D11DepthStencilView*			g_pDepthStencilView = nullptr;
 ID3D11PixelShader*				g_pPixelShader = nullptr;
 ID3D11VertexShader*				g_pVertexShader = nullptr;
 ID3D11InputLayout*				g_pVertexLayout = nullptr;
 ID3D11Buffer*					g_pVertexBuffer = nullptr;
+ID3D11Buffer*					g_pIndexBuffer = nullptr;
+ID3D11Buffer*					g_pConstantBuffer = nullptr;
+XMMATRIX						g_World_1;
+XMMATRIX						g_World_0;
+XMMATRIX						g_View;
+XMMATRIX						g_Projection;
 
 
 
@@ -156,8 +164,8 @@ HRESULT InitDevice()
 	UINT height = rc.bottom - rc.top;
 
 	UINT createDeviceFlags = 0;
-#ifdef DEBUG
-	createDeviceFlags = D3D11_CREATE_DEVICE_DEBUG;
+#ifdef _DEBUG
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 
 #endif // DEBUG
 
@@ -174,7 +182,6 @@ HRESULT InitDevice()
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0
-
 	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
@@ -202,23 +209,33 @@ HRESULT InitDevice()
 			break;
 		}
 	}
-	if (FAILED(hr))
-	{
-		return hr;
-	}
+	if (FAILED(hr)) return hr;
 
 	ID3D11Texture2D* pBackbuffer = nullptr;
 	hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackbuffer);
-	if (FAILED(hr))
-		return hr;
-
+	if (FAILED(hr)) return hr;
 	hr = g_pd3dDevice->CreateRenderTargetView(pBackbuffer, nullptr, &g_pRenderTargetView);
 	pBackbuffer->Release();
-	if (FAILED(hr))
-		return hr;
+	if (FAILED(hr)) return hr;
 
+	/*D3D11_TEXTURE2D_DESC descDepth;
+	ZeroMemory(&descDepth, sizeof(descDepth));
+	descDepth.Width = width;
+	descDepth.Height = height;
+	descDepth.MipLevels = 1;
+	descDepth.MipLevels = 1;
+	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	descDepth.SampleDesc.Count = 1;
+	descDepth.SampleDesc.Quality = 0;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = 0;
+	descDepth.MiscFlags = 0;
+	hr = g_pd3dDevice->CreateTextrue2D(&descDepth, nullptr, &g_pD)
+
+*/
 	g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, nullptr);
 
+	
 	D3D11_VIEWPORT vp;
 	vp.Width = (FLOAT)width;
 	vp.Height = (FLOAT)height;
@@ -245,11 +262,13 @@ HRESULT InitDevice()
 
 	D3D11_INPUT_ELEMENT_DESC layout[] = 
 	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
-	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &g_pVertexLayout);
+	hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
+											pVSBlob->GetBufferSize(), &g_pVertexLayout);
 	pVSBlob->Release();
 	if (FAILED(hr))
 		return hr;
@@ -273,19 +292,22 @@ HRESULT InitDevice()
 
 	TVertex vertices[] =
 	{
-		XMFLOAT3(0.0f, 0.5f, 0.5f),
-		XMFLOAT3(0.5f, -0.5f, 0.5f),
-		XMFLOAT3(-0.5f, -0.5f, 0.5f),
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
 	};
 
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(TVertex)* 3;
+	bd.ByteWidth = sizeof(TVertex)* 8;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
-	bd.MiscFlags = 0;
-	
 	D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = vertices;
@@ -297,20 +319,93 @@ HRESULT InitDevice()
 	UINT offset = 0;
 	g_pImmediateContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
+	// Create index buffer
+	WORD indices[] =
+	{
+		3,1,0,
+		2,1,3,
+
+		0,5,4,
+		1,5,0,
+
+		3,4,7,
+		0,4,3,
+
+		1,6,5,
+		2,6,1,
+
+		2,7,6,
+		3,7,2,
+
+		6,4,5,
+		7,4,6,
+	};	
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(WORD) * 36;
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+	bd.MiscFlags= 0;
+	InitData.pSysMem = indices;
+	hr = g_pd3dDevice->CreateBuffer(&bd, &InitData, &g_pIndexBuffer);
+	if (FAILED(hr)) return hr;
+
+	g_pImmediateContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
 	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	bd.Usage	 = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(TConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	bd.MiscFlags = 0;
+	hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pConstantBuffer);
+	if (FAILED(hr)) return hr;
+	
+	g_World_0 = XMMatrixIdentity();
+
+	XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+	XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	g_View = XMMatrixLookAtLH(Eye, At, Up);
+
+	g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01f, 100.0f);
 
 	return S_OK;
 }
 
 void Render()
 {
-	float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
-	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, clearColor);
+	static float t = 0.0f;
+	if (g_driverType == D3D_DRIVER_TYPE_REFERENCE)
+	{
+		t += (float)XM_PI * 0.0125f;
+	}
+	else
+	{
+		static DWORD dwTimeStart = 0;
+		DWORD dwTimecur = GetTickCount();
+		if (dwTimeStart == 0) dwTimeStart = dwTimeStart;
+		t = (dwTimecur - dwTimeStart) / 1000.0f;
+	}
+
+	g_World_0 = XMMatrixRotationY(t);
+
+	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
+
+	TConstantBuffer cb;
+	cb.mWorld = XMMatrixTranspose(g_World_0);
+	cb.mView = XMMatrixTranspose(g_View);
+	cb.mProjection = XMMatrixTranspose(g_Projection);
+	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
+
+
 
 	//Render Anything
 	g_pImmediateContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);
 	g_pImmediateContext->PSSetShader(g_pPixelShader, nullptr, 0);
-	g_pImmediateContext->Draw(3, 0);
+	g_pImmediateContext->DrawIndexed(36, 0, 0);
 	//Render End
 
 
@@ -322,6 +417,8 @@ void CleanDevice()
 {
 	if (g_pImmediateContext) g_pImmediateContext->ClearState();
 
+	if (g_pConstantBuffer) g_pConstantBuffer->Release();
+	if (g_pIndexBuffer) g_pIndexBuffer->Release();
 	if (g_pVertexBuffer) g_pVertexBuffer->Release();
 	if (g_pVertexLayout) g_pVertexLayout->Release();
 	if (g_pVertexShader) g_pVertexShader->Release();
