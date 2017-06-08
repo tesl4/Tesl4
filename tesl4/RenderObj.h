@@ -3,7 +3,8 @@
 #pragma once
 class CRenderObj
 {
-	TVertex Vertexes[];
+	WORD	*m_Indexes;
+	TVertex *m_Vertexes;
 
 public:
 	CRenderObj();
