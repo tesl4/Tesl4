@@ -36,15 +36,33 @@
     <ClInclude Include="RenderObj.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="sources\Runtime\modules\Render\RenderDX11.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Runtime\modules\Render\Renderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeMgr.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="tesl4.cpp">
+    <ClCompile Include="RenderObj.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="RenderObj.cpp">
+    <ClCompile Include="sources\Runtime\modules\Render\RenderDX11.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Runtime\modules\Render\Renderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeMgr.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

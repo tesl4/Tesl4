@@ -33,3 +33,7 @@ typedef struct TConstantBuffer
 	XMFLOAT4 vLightColor[2];
 	XMFLOAT4 vOutputColor;
 };
+
+
+//typedef overrides
+#define  TRect RECT;

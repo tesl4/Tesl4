@@ -98,7 +98,9 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d3dx11d.lib;d3dx9d.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d3dx11d.lib;d3dx9d.lib;d3dxof.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <MinimumRequiredVersion>
+      </MinimumRequiredVersion>
     </Link>
     <FxCompile>
       <ShaderType>Effect</ShaderType>
@@ -154,20 +156,30 @@
   <ItemGroup>
     <ClInclude Include="RenderObj.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="sources\Runtime\modules\Render\RenderDX11.h" />
+    <ClInclude Include="sources\Runtime\modules\Render\Renderer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tesl4.h" />
     <ClInclude Include="structs.h" />
+    <ClInclude Include="TimeMgr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RenderObj.cpp" />
+    <ClCompile Include="sources\Runtime\modules\Render\RenderDX11.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="sources\Runtime\modules\Render\Renderer.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="tesl4.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="TimeMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tesl4.rc" />

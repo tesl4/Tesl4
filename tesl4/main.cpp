@@ -1,4 +1,4 @@
-// tesl4.cpp : ÀÀ¿ë ÇÁ·Î±×·¥¿¡ ´ëÇÑ ÁøÀÔÁ¡À» Á¤ÀÇÇÕ´Ï´Ù.
+ï»¿// tesl4.cpp : ì‘ìš© í”„ë¡œê·¸ë¨ì— ëŒ€í•œ ì§„ì…ì ì„ ì •ì˜í•©ë‹ˆë‹¤.
 //
 #include "stdafx.h"
 #include "tesl4.h"
@@ -6,8 +6,8 @@
 #define MAX_LOADSTRING 100
 
 
-// Àü¿ª º¯¼ö:
-HINSTANCE						hInst;                                // ÇöÀç ÀÎ½ºÅÏ½ºÀÔ´Ï´Ù.
+// ì „ì—­ ë³€ìˆ˜:
+HINSTANCE						hInst;                                // í˜„ì¬ ì¸ìŠ¤í„´ìŠ¤ì…ë‹ˆë‹¤.
 HWND							g_hWnd;
 D3D_DRIVER_TYPE					g_driverType		= D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL				g_featureLevel		= D3D_FEATURE_LEVEL_11_0;
@@ -41,10 +41,10 @@ XMMATRIX						g_Projection;
 XMFLOAT4						g_vMeshColor(0.7f, 0.7f, 0.7f, 1.0f);
 
 
-WCHAR szTitle[MAX_LOADSTRING];                  // Á¦¸ñ Ç¥½ÃÁÙ ÅØ½ºÆ®ÀÔ´Ï´Ù.
-WCHAR szWindowClass[MAX_LOADSTRING];            // ±âº» Ã¢ Å¬·¡½º ÀÌ¸§ÀÔ´Ï´Ù.
+WCHAR szTitle[MAX_LOADSTRING];                  // ì œëª© í‘œì‹œì¤„ í…ìŠ¤íŠ¸ì…ë‹ˆë‹¤.
+WCHAR szWindowClass[MAX_LOADSTRING];            // ê¸°ë³¸ ì°½ í´ë˜ìŠ¤ ì´ë¦„ì…ë‹ˆë‹¤.
 
-// ÀÌ ÄÚµå ¸ğµâ¿¡ µé¾î ÀÖ´Â ÇÔ¼öÀÇ Á¤¹æÇâ ¼±¾ğÀÔ´Ï´Ù.
+// ì´ ì½”ë“œ ëª¨ë“ˆì— ë“¤ì–´ ìˆëŠ” í•¨ìˆ˜ì˜ ì •ë°©í–¥ ì„ ì–¸ì…ë‹ˆë‹¤.
 HRESULT             InitInstance(HINSTANCE hInstance, int nCmdShow);
 HRESULT				InitDevice();
 void				CleanDevice();
@@ -54,6 +54,21 @@ HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szS
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR    lpCmdLine, _In_ int       nCmdShow)
 {
+	AllocConsole();
+	freopen("CONOUT$", "wt", stdout);
+	//CONOUT$ - console ì°½
+	//wt - í…ìŠ¤íŠ¸ ì“°ê¸° ëª¨ë“œ
+	//stdout - ì¶œë ¥ë  íŒŒì¼ í¬ì¸í„°(ëª¨ë‹ˆí„°ë¡œ ì§€ì •)
+
+	printf("hello DEBUG\n");
+
+ì¶œì²˜: http://kukuta.tistory.com/142 [HardCore in Programming]
+
+
+	CRender* m_Renderer = new CRenderDX11();
+	CTimeMgr* m_time = new CTimeMgr();
+	m_time->CapFPS(24);
+
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
@@ -63,9 +78,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	if (FAILED(InitInstance(hInstance, nCmdShow)))
 		return 0;
 
-	if (FAILED(InitDevice()))
+	
+
+	if (FAILED(m_Renderer->Init(g_hWnd)))
 	{
-		CleanDevice();
+		m_Renderer->Cleanup();
 		return 0;
 	}
 
@@ -80,11 +97,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		}
 		else
 		{
-			Render();
+			UINT needSleep = m_time->TimeUpdate();
+			m_Renderer->Draw();
+
+			
+			//if (needSleep <= 0)
+			//{
+			//}
+			//else
+			//{
+			//	Sleep(needSleep);
+			//}
+			
 		}
 	}
 
-	CleanDevice();
+	m_Renderer->Cleanup();
 
 	return (int)msg.wParam;
 }
@@ -92,9 +120,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 //
-//  ÇÔ¼ö: MyRegisterClass()
+//  í•¨ìˆ˜: MyRegisterClass()
 //
-//  ¸ñÀû: Ã¢ Å¬·¡½º¸¦ µî·ÏÇÕ´Ï´Ù.
+//  ëª©ì : ì°½ í´ë˜ìŠ¤ë¥¼ ë“±ë¡í•©ë‹ˆë‹¤.
 //
 HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
@@ -116,8 +144,8 @@ HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	RegisterClassEx(&wcex);
 
-	hInst = hInstance; // ÀÎ½ºÅÏ½º ÇÚµéÀ» Àü¿ª º¯¼ö¿¡ ÀúÀåÇÕ´Ï´Ù.
-	RECT rc = { 0, 0, 640, 480 };
+	hInst = hInstance; // ì¸ìŠ¤í„´ìŠ¤ í•¸ë“¤ì„ ì „ì—­ ë³€ìˆ˜ì— ì €ì¥í•©ë‹ˆë‹¤.
+	RECT rc = { 0, 0, 1280, 720 };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
 	g_hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
@@ -136,13 +164,13 @@ HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 
 //
-//  ÇÔ¼ö: WndProc(HWND, UINT, WPARAM, LPARAM)
+//  í•¨ìˆ˜: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
-//  ¸ñÀû:  ÁÖ Ã¢ÀÇ ¸Ş½ÃÁö¸¦ Ã³¸®ÇÕ´Ï´Ù.
+//  ëª©ì :  ì£¼ ì°½ì˜ ë©”ì‹œì§€ë¥¼ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 //
-//  WM_COMMAND  - ÀÀ¿ë ÇÁ·Î±×·¥ ¸Ş´º¸¦ Ã³¸®ÇÕ´Ï´Ù.
-//  WM_PAINT    - ÁÖ Ã¢À» ±×¸³´Ï´Ù.
-//  WM_DESTROY  - Á¾·á ¸Ş½ÃÁö¸¦ °Ô½ÃÇÏ°í ¹İÈ¯ÇÕ´Ï´Ù.
+//  WM_COMMAND  - ì‘ìš© í”„ë¡œê·¸ë¨ ë©”ë‰´ë¥¼ ì²˜ë¦¬í•©ë‹ˆë‹¤.
+//  WM_PAINT    - ì£¼ ì°½ì„ ê·¸ë¦½ë‹ˆë‹¤.
+//  WM_DESTROY  - ì¢…ë£Œ ë©”ì‹œì§€ë¥¼ ê²Œì‹œí•˜ê³  ë°˜í™˜í•©ë‹ˆë‹¤.
 //
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -212,8 +240,9 @@ HRESULT InitDevice()
 	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 	{
 		g_driverType = driverTypes[driverTypeIndex];
-		hr = D3D11CreateDeviceAndSwapChain(NULL, g_driverType, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
-			D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext);
+		hr = D3D11CreateDeviceAndSwapChain(NULL, g_driverType, NULL, createDeviceFlags,
+			featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &sd, &g_pSwapChain, 
+			&g_pd3dDevice, &g_featureLevel, &g_pImmediateContext);
 		if (SUCCEEDED(hr))
 			break;
 	}
@@ -325,7 +354,7 @@ HRESULT InitDevice()
 		return hr;
 
 
-	//Á¤Á¡¹öÆÛ »ı¼º
+	//ì •ì ë²„í¼ ìƒì„±
 	TVertex vertices[] =
 	{
 		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
@@ -438,7 +467,7 @@ HRESULT InitDevice()
 	hr = D3DX11CreateShaderResourceViewFromFile(g_pd3dDevice, L"seafloor.dds", NULL, NULL, &g_pTextureRV, NULL);
 	if (FAILED(hr))
 		return hr;
-	//»ıÇÃ ½ºÅ×ÀÌÆ® »ı¼º
+	//ìƒí”Œ ìŠ¤í…Œì´íŠ¸ ìƒì„±
 	D3D11_SAMPLER_DESC sampleDsc;
 	ZeroMemory(&sampleDsc, sizeof(sampleDsc));
 	sampleDsc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -451,7 +480,7 @@ HRESULT InitDevice()
 	hr = g_pd3dDevice->CreateSamplerState(&sampleDsc, &g_pSamplerLinear);
 	if (FAILED(hr)) return hr;
 
-	//¿ùµåÁÂÇ¥ ÃÊ±âÈ­
+	//ì›”ë“œì¢Œí‘œ ì´ˆê¸°í™”
 	g_World_0 = XMMatrixIdentity();
 	
 	XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
@@ -463,7 +492,7 @@ HRESULT InitDevice()
 	cbneverChanges.mView = XMMatrixTranspose(g_View);
 	g_pImmediateContext->UpdateSubresource(g_pCBNeverChanges, 0, nullptr, &cbneverChanges, 0, 0);
 
-	//Åõ¿µ ÁÂÇ¥ ÃÊ±âÈ­
+	//íˆ¬ì˜ ì¢Œí‘œ ì´ˆê¸°í™”
 	g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
 
 	CBChangeOnResize cbChangeonresize;

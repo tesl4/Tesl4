@@ -4,6 +4,7 @@
 
 CRenderObj::CRenderObj()
 {
+	
 }
 
 
