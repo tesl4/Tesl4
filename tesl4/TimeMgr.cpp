@@ -2,7 +2,7 @@
 #include "TimeMgr.h"
 
 
-CTimeMgr::CTimeMgr() : m_deltaMS(0), m_totalRuntimeMS(0), m_minDeltaMS(33)
+CTimeMgr::CTimeMgr() : m_delta(0), m_currentRuntime(0), m_minDelta(33)
 {
 	m_timer = 0;
 	m_fps = 0;
@@ -15,24 +15,34 @@ CTimeMgr::~CTimeMgr()
 
 UINT CTimeMgr::TimeUpdate()
 {
-	clock_t currentTimeMS = m_totalRuntimeMS;
-	m_totalRuntimeMS = timeGetTime();
-	m_deltaMS = m_totalRuntimeMS - currentTimeMS;
-	m_deltaNor = 0.001f * m_deltaMS;
-	if (m_minDeltaMS > m_deltaMS)
+	clock_t prevTime = m_currentRuntime;
+	m_currentRuntime = GetTickCount();
+	m_delta = ((float)m_currentRuntime - (float)prevTime) * 0.001f;
+	//std::cout << m_currentRuntime << " + " << prevTime <<std::endl;
+
+	float fsleep = 0;
+	if (m_minDelta > m_delta)
 	{
-		int sleep = m_minDeltaMS - m_deltaMS;
-		Sleep(sleep);
-		m_deltaMS += sleep;
+		fsleep = (float)m_minDelta - (float)m_delta;
+		Sleep(fsleep);
+		m_delta += fsleep;
 	}
-	
-	m_fps++;
-	//std::cout << m_totalRuntimeMS << " - " << currentTimeMS << " = " << m_deltaMS <<std::endl;
-	
-	m_timer += m_deltaMS;
-	if (m_timer > 1000)
+	m_deltaNor = m_delta * 0.001;
+	m_timer += m_deltaNor;
+	/*std::cout << m_deltaNor << " + " << m_timer;
+	if (fsleep > 0) std::cout << "   slept " << fsleep << "ms    "<<std::endl;
+	else std::cout << std::endl;*/
+
+	if (QueryPerformanceCounter((LARGE_INTEGER*)&m_PerformanceCntr))
 	{
-		std::cout <<"1sec ticks - "<<m_fps<< std::endl;
+		std::cout <<m_PerformanceCntr<< std::endl;
+	}
+
+	m_fps++;
+	
+	if (m_timer > 1.0f)
+	{
+		//std::cout <<"1sec ticks -----------------------------------------------"<<m_fps<< std::endl;
 		m_fps = 0;
 		m_timer = 0;
 	}
@@ -42,6 +52,17 @@ UINT CTimeMgr::TimeUpdate()
 
 void CTimeMgr::CapFPS(int _capVal)
 {
-	m_minDeltaMS = 1000 / _capVal;
-	m_minDeltaNor = 0.001 * m_minDeltaMS;
+	m_minDelta = 1000 / _capVal;
 }
+
+float CTimeMgr::GetDelta()
+{
+	return m_deltaNor;
+}
+
+float CTimeMgr::GetDeltaMS()
+{
+	return m_delta;
+}
+
+

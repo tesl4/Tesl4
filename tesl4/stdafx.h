@@ -11,6 +11,7 @@
 // Windows 헤더 파일:
 #include<windows.h>
 #include <iostream>
+#include <thread>
 //d3d
 #include <d3d11.h>
 #include <d3dx11.h>

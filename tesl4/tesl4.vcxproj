@@ -154,6 +154,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameObj.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="RenderObj.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="sources\Runtime\modules\Render\RenderDX11.h" />
@@ -163,6 +165,7 @@
     <ClInclude Include="tesl4.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="TimeMgr.h" />
+    <ClInclude Include="Verex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RenderObj.cpp" />
@@ -180,6 +183,7 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TimeMgr.cpp" />
+    <ClCompile Include="Verex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tesl4.rc" />

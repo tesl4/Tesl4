@@ -60,14 +60,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	//wt - 텍스트 쓰기 모드
 	//stdout - 출력될 파일 포인터(모니터로 지정)
 
-	printf("hello DEBUG\n");
-
-출처: http://kukuta.tistory.com/142 [HardCore in Programming]
-
 
 	CRender* m_Renderer = new CRenderDX11();
 	CTimeMgr* m_time = new CTimeMgr();
-	m_time->CapFPS(24);
+	m_time->CapFPS(60);
 
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
@@ -99,19 +95,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		{
 			UINT needSleep = m_time->TimeUpdate();
 			m_Renderer->Draw();
-
-			
-			//if (needSleep <= 0)
-			//{
-			//}
-			//else
-			//{
-			//	Sleep(needSleep);
-			//}
-			
 		}
 	}
-
 	m_Renderer->Cleanup();
 
 	return (int)msg.wParam;

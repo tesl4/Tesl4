@@ -45,6 +45,15 @@
     <ClInclude Include="TimeMgr.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="GameObj.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Verex.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -63,6 +72,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="TimeMgr.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Verex.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

@@ -131,6 +131,8 @@ void CRenderDX11::Draw()
 
 HRESULT CRenderDX11::Cleanup()
 {
+	
+
 	if (m_pIContext)		 m_pIContext->ClearState();
 	if (m_pRenderTargetView) m_pRenderTargetView->Release();
 	if (m_pSwapChain)		 m_pSwapChain->Release();
