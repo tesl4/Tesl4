@@ -155,7 +155,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameObj.h" />
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="sources\Runtime\Frameworks\LevelManager.h" />
+    <ClInclude Include="sources\Runtime\Frameworks\Mesh.h" />
+    <ClInclude Include="sources\Runtime\Frameworks\prototypes\MeshProto.h" />
     <ClInclude Include="RenderObj.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="sources\Runtime\modules\Render\RenderDX11.h" />
@@ -168,7 +170,13 @@
     <ClInclude Include="Verex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="sources\Runtime\Frameworks\LevelManager.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="RenderObj.cpp" />
+    <ClCompile Include="sources\Runtime\Frameworks\Mesh.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="sources\Runtime\modules\Render\RenderDX11.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
     </ClCompile>

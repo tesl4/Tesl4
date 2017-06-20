@@ -1,8 +1,8 @@
-#include <ctime>
+#include "stdafx.h"
 #pragma once
 class CTimeMgr
 {
-	clock_t		m_currentRuntime;	//현재 어플리케이션의 실행 시간(ms)
+	unsigned int m_currentRuntime;	//현재 어플리케이션의 실행 시간(ms)
 	
 	float m_delta;
 	float m_deltaNor;
@@ -11,7 +11,7 @@ class CTimeMgr
 
 	int m_fps;
 
-	INT64 m_PerformanceCntr;
+	unsigned int m_PerformanceCntr;
 
 public:
 	CTimeMgr();

@@ -1,16 +1,31 @@
-#include "Renderer.h"
+#include "../../stdafx.h"
 
 #pragma once
-class CRenderDX11 : public CRender
+class CRenderDX11
 {
 public:
-	CRenderDX11();
-	~CRenderDX11();
+	static CRenderDX11* GetInstance();
 	
-	HRESULT Init(HWND) override;
-	void Draw() override;
-	HRESULT Cleanup() override;
+	HRESULT Init(HWND)/* override*/;
+	void DrawStart()/* override*/;
+	void DrawEnd();
+	HRESULT Cleanup()/* override*/;
+
+	ID3D11Device*			GetDevice();
+	ID3D11DeviceContext*	GetDeviceContext();
+	
+	bool		IsInitialized();
+
+	~CRenderDX11();
+
+	XMMATRIX m_Worldmat_dev;
+	XMMATRIX m_Viewmat_dev;
+	XMMATRIX m_Projmat_dev;
+
 private:
+	CRenderDX11();
+	static CRenderDX11 *CRenderDX11::m_instance;
+	
 	ID3D11Device			*m_pDevice			  = nullptr;
 	ID3D11DeviceContext		*m_pIContext		  = nullptr;
 	IDXGISwapChain			*m_pSwapChain		  = nullptr;
@@ -20,6 +35,6 @@ private:
 
 	D3D_DRIVER_TYPE				m_driverType;
 	D3D_FEATURE_LEVEL			m_FeatureLv;
-	
 
+	
 };

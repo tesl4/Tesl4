@@ -33,11 +33,6 @@ UINT CTimeMgr::TimeUpdate()
 	if (fsleep > 0) std::cout << "   slept " << fsleep << "ms    "<<std::endl;
 	else std::cout << std::endl;*/
 
-	if (QueryPerformanceCounter((LARGE_INTEGER*)&m_PerformanceCntr))
-	{
-		std::cout <<m_PerformanceCntr<< std::endl;
-	}
-
 	m_fps++;
 	
 	if (m_timer > 1.0f)

@@ -1,12 +1,26 @@
 #include "../../stdafx.h"
 #pragma once
 
+CRenderDX11* CRenderDX11::m_instance = nullptr;
+
 CRenderDX11::CRenderDX11()
 {
 }
 
 CRenderDX11::~CRenderDX11()
 {
+}
+
+CRenderDX11* CRenderDX11::GetInstance()
+{
+	if (m_instance == nullptr)
+	{
+		m_instance = new CRenderDX11();
+	}
+
+	if(m_instance != nullptr) return m_instance;
+
+	return nullptr;
 }
 
 HRESULT CRenderDX11::Init(HWND _hWnd)
@@ -112,6 +126,15 @@ HRESULT CRenderDX11::Init(HWND _hWnd)
 						viewport.TopLeftX = 0;
 						viewport.TopLeftY = 0;
 						m_pIContext->RSSetViewports(1, &viewport);
+
+						m_Worldmat_dev = XMMatrixIdentity();
+
+						XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+						XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						m_Viewmat_dev = XMMatrixLookAtLH(Eye, At, Up);
+
+						m_Projmat_dev = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01F, 100.0F);
 					}
 				}
 			}
@@ -122,24 +145,42 @@ HRESULT CRenderDX11::Init(HWND _hWnd)
 	return res;
 }
 
-void CRenderDX11::Draw()
+void CRenderDX11::DrawStart()
 {
 	float ClearColor[4] = { 0.67f, 0.39f, 0.48f, 1.0f }; //red,green,blue,alpha
 	m_pIContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
+
+}
+
+void CRenderDX11::DrawEnd()
+{
 	m_pSwapChain->Present(0, 0);
+
 }
 
 HRESULT CRenderDX11::Cleanup()
 {
-	
-
 	if (m_pIContext)		 m_pIContext->ClearState();
 	if (m_pRenderTargetView) m_pRenderTargetView->Release();
 	if (m_pSwapChain)		 m_pSwapChain->Release();
 	if (m_pIContext)		 m_pIContext->Release();
 	if (m_pDevice)			 m_pDevice->Release();
-
 	return false;
+}
+
+ID3D11Device * CRenderDX11::GetDevice()
+{
+	return m_pDevice;
+}
+
+ID3D11DeviceContext* CRenderDX11::GetDeviceContext()
+{
+	return m_pIContext;
+}
+
+bool CRenderDX11::IsInitialized()
+{
+	return m_pDevice != nullptr;
 }
 
 

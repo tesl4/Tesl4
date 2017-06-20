@@ -11,6 +11,7 @@
 // Windows 헤더 파일:
 #include<windows.h>
 #include <iostream>
+#include <ctime>
 #include <thread>
 //d3d
 #include <d3d11.h>
@@ -24,12 +25,18 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+#include <list>
+#include <vector>
 
 
 //Tesl4
 #include "structs.h"
 #include "sources/Runtime/modules/Render/Renderer.h" 
 #include "sources/Runtime/modules/Render/RenderDX11.h" 
+#include "sources/Runtime/Frameworks/Mesh.h"
+#include "sources/Runtime/Frameworks/prototypes/MeshProto.h"
+#include "sources/Runtime/Frameworks/LevelManager.h"
+
 #include "TimeMgr.h" 
 
 
