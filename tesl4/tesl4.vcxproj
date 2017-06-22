@@ -154,35 +154,32 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GameObj.h" />
-    <ClInclude Include="sources\Runtime\Frameworks\LevelManager.h" />
-    <ClInclude Include="sources\Runtime\Frameworks\Mesh.h" />
+    <ClInclude Include="Actor.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="RenderDX11.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderObj.h" />
     <ClInclude Include="sources\Runtime\Frameworks\prototypes\MeshProto.h" />
     <ClInclude Include="RenderObj.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="sources\Runtime\modules\Render\RenderDX11.h" />
-    <ClInclude Include="sources\Runtime\modules\Render\Renderer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tesl4.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="TimeMgr.h" />
-    <ClInclude Include="Verex.h" />
+    <ClInclude Include="TriangleActor.h" />
+    <ClInclude Include="Triangles.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sources\Runtime\Frameworks\LevelManager.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
-    </ClCompile>
+    <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="RenderDX11.cpp" />
     <ClCompile Include="RenderObj.cpp" />
-    <ClCompile Include="sources\Runtime\Frameworks\Mesh.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="sources\Runtime\modules\Render\RenderDX11.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <ClCompile Include="sources\Runtime\modules\Render\Renderer.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../stdafx.h</PrecompiledHeaderFile>
-    </ClCompile>
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderObj.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -191,7 +188,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TimeMgr.cpp" />
-    <ClCompile Include="Verex.cpp" />
+    <ClCompile Include="TriangleActor.cpp" />
+    <ClCompile Include="Triangles.cpp" />
+    <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tesl4.rc" />
@@ -201,7 +200,9 @@
     <Image Include="tesl4.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="tutorial.fx" />
+    <None Include="tutorial.fx">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -29,20 +29,27 @@
 #include <vector>
 
 
-//Tesl4
+//Tesl4->Framework Part
 #include "structs.h"
-#include "sources/Runtime/modules/Render/Renderer.h" 
-#include "sources/Runtime/modules/Render/RenderDX11.h" 
-#include "sources/Runtime/Frameworks/Mesh.h"
-#include "sources/Runtime/Frameworks/prototypes/MeshProto.h"
-#include "sources/Runtime/Frameworks/LevelManager.h"
-
+#include "RenderDX11.h" 
+#include "Mesh.h"
+#include "Vertex.h"
+#include "Actor.h"
 #include "TimeMgr.h" 
+#include "ShaderObj.h" 
+
+
+//Tesl4->Content Part
+#include "Triangles.h"
+#include "TriangleActor.h"
+
+
+
 
 
 
 //typedefs
-
+#define null	nullptr
 
 
 

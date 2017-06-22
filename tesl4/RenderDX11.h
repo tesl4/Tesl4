@@ -18,9 +18,9 @@ public:
 
 	~CRenderDX11();
 
-	XMMATRIX m_Worldmat_dev;
+	/*XMMATRIX m_Worldmat_dev;
 	XMMATRIX m_Viewmat_dev;
-	XMMATRIX m_Projmat_dev;
+	XMMATRIX m_Projmat_dev;*/
 
 private:
 	CRenderDX11();

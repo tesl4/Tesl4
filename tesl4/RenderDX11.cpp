@@ -1,4 +1,4 @@
-#include "../../stdafx.h"
+#include "stdafx.h"
 #pragma once
 
 CRenderDX11* CRenderDX11::m_instance = nullptr;
@@ -125,16 +125,16 @@ HRESULT CRenderDX11::Init(HWND _hWnd)
 						viewport.MaxDepth = 1.0f;
 						viewport.TopLeftX = 0;
 						viewport.TopLeftY = 0;
-						m_pIContext->RSSetViewports(1, &viewport);
+						//m_pIContext->RSSetViewports(1, &viewport);
 
-						m_Worldmat_dev = XMMatrixIdentity();
+						//m_Worldmat_dev = XMMatrixIdentity();
 
-						XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
-						XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-						XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-						m_Viewmat_dev = XMMatrixLookAtLH(Eye, At, Up);
+						//XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+						//XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						//XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						//m_Viewmat_dev = XMMatrixLookAtLH(Eye, At, Up);
 
-						m_Projmat_dev = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01F, 100.0F);
+						//m_Projmat_dev = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01F, 100.0F);
 					}
 				}
 			}

@@ -34,7 +34,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	//CRender* m_Renderer = new CRenderDX11();
 	CTimeMgr* m_time = new CTimeMgr();
-	CMeshProto* m_MeshProto = new CMeshProto();
 	m_time->CapFPS(60);
 
 
@@ -57,7 +56,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	}
 	else
 	{
-		m_MeshProto->Init();
+		
 	}
 
 	// Main message loop
@@ -74,7 +73,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			UINT needSleep = m_time->TimeUpdate();
 			CRenderDX11::GetInstance()->DrawStart();
 
-			m_MeshProto->RenderTick(m_time->GetDelta());
 			//std::cout << "sex" << std::endl;
 			CRenderDX11::GetInstance()->DrawEnd();
 		}
