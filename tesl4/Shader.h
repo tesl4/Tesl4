@@ -18,7 +18,6 @@ public:
 	
 	HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 
-	
 	virtual void CreateShader();
 	virtual void Render();
 };

@@ -32,6 +32,7 @@
 //Tesl4->Framework Part
 #include "structs.h"
 #include "RenderDX11.h" 
+#include "Scene.h"
 #include "Mesh.h"
 #include "Vertex.h"
 #include "Actor.h"

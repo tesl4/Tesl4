@@ -28,7 +28,7 @@ void CActor::Release()
 
 void CActor::SetMesh(CMesh * _mesh)
 {
-	m_Mesh->Release();
+	if (m_Mesh != nullptr) m_Mesh->Release();
 	m_Mesh = _mesh;
 	m_Mesh->AddRef();
 }

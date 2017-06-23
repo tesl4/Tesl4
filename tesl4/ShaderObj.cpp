@@ -10,9 +10,9 @@ CShaderObj::CShaderObj()
 
 CShaderObj::~CShaderObj()
 {
-	for (int i = 0; i < m_objects.size(); i++)
+	for (int i = 0; i < m_actors.size(); i++)
 	{
-		if (&m_objects[i] != nullptr) m_objects[i]->Release();
+		if (&m_actors[i] != nullptr) m_actors[i]->Release();
 	}
 
 	//if (m_objects != nullptr) delete m_objects;
@@ -20,19 +20,19 @@ CShaderObj::~CShaderObj()
 
 void CShaderObj::AddActor(CActor* _actor)
 {
-	if (std::find(m_objects.begin(), m_objects.end(), _actor) == m_objects.end())
+	if (std::find(m_actors.begin(), m_actors.end(), _actor) == m_actors.end())
 	{
-		m_objects.push_back(_actor);
+		m_actors.push_back(_actor);
 		_actor->Addref();
 	}
 }
 
 void CShaderObj::RemoveActor(CActor* _actor)
 {
-	auto found = std::find(m_objects.begin(), m_objects.end(), _actor);
-	if ( found != m_objects.end())
+	auto found = std::find(m_actors.begin(), m_actors.end(), _actor);
+	if ( found != m_actors.end())
 	{
-		m_objects.erase(found);
+		m_actors.erase(found);
 		_actor->Addref();
 	}
 }
@@ -46,7 +46,7 @@ void CShaderObj::CreateShader()
 	UINT elements = ARRAYSIZE(inputLayout);
 
 	CShaderObj::InitVertexShader(L"tutorial.fx", "VS", "vs_4_0", &m_VertexShader, inputLayout, elements, &m_VertexLayout);
-	CShaderObj::InitPixelShader(L"tutorial.fx", "PS", "vs_4_0", &m_PixelShader);
+	CShaderObj::InitPixelShader(L"tutorial.fx", "PS", "ps_4_0", &m_PixelShader);
 
 
 }
@@ -54,9 +54,9 @@ void CShaderObj::CreateShader()
 void CShaderObj::Render()
 {
 	CShader::Render();
-	for (int i = 0; i < m_objects.size(); i++)
+	for (int i = 0; i < m_actors.size(); i++)
 	{
-		m_objects[i]->Render();
+		m_actors[i]->Render();
 	}
 }
 

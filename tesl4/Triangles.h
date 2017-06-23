@@ -6,6 +6,8 @@ public:
 	CTriangles();
 	virtual ~CTriangles();
 
+	void Init() override;
+
 	void Render() override;
 };
 

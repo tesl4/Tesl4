@@ -9,18 +9,20 @@ public:
 	HRESULT Init(HWND)/* override*/;
 	void DrawStart()/* override*/;
 	void DrawEnd();
+	bool CreateRenderTargetView();
 	HRESULT Cleanup()/* override*/;
 
 	ID3D11Device*			GetDevice();
 	ID3D11DeviceContext*	GetDeviceContext();
-	
+
+	void SetViewport();
 	bool		IsInitialized();
 
 	~CRenderDX11();
 
-	/*XMMATRIX m_Worldmat_dev;
+	XMMATRIX m_Worldmat_dev;
 	XMMATRIX m_Viewmat_dev;
-	XMMATRIX m_Projmat_dev;*/
+	XMMATRIX m_Projmat_dev;
 
 private:
 	CRenderDX11();
@@ -33,8 +35,12 @@ private:
 	ID3D11Texture2D			*m_pDepthStencilTex2d = nullptr;
 	ID3D11DepthStencilView  *m_pDepthStencilView  = nullptr;
 
+
+
 	D3D_DRIVER_TYPE				m_driverType;
 	D3D_FEATURE_LEVEL			m_FeatureLv;
 
+	float m_Width;
+	float m_Height;
 	
 };

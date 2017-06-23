@@ -1,4 +1,7 @@
 #pragma once
+#include "Mesh.h"
+#include "Actor.h"
+
 class CActor
 {
 	int m_refCount;

@@ -30,8 +30,8 @@ HRESULT CRenderDX11::Init(HWND _hWnd)
 	
 	//WinPlatform
 	GetClientRect(_hWnd, &rect);
-	UINT width  = rect.right - rect.left;
-	UINT height = rect.bottom - rect.top;
+	m_Width  = rect.right - rect.left;
+	m_Height = rect.bottom - rect.top;
 
 	UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -56,8 +56,8 @@ HRESULT CRenderDX11::Init(HWND _hWnd)
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
 	sd.BufferCount = 1;
-	sd.BufferDesc.Width = width;
-	sd.BufferDesc.Height = height;
+	sd.BufferDesc.Width = m_Width;
+	sd.BufferDesc.Height = m_Height;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -93,8 +93,8 @@ HRESULT CRenderDX11::Init(HWND _hWnd)
 				//create render target
 				D3D11_TEXTURE2D_DESC descDepth;
 				ZeroMemory(&descDepth, sizeof(descDepth));
-				descDepth.Width = width;
-				descDepth.Height = height;
+				descDepth.Width = m_Width;
+				descDepth.Height = m_Height;
 				descDepth.MipLevels = 1;
 				descDepth.ArraySize = 1;
 				descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -116,25 +116,15 @@ HRESULT CRenderDX11::Init(HWND _hWnd)
 					res = m_pDevice->CreateDepthStencilView(m_pDepthStencilTex2d, &descStencilView, &m_pDepthStencilView);
 					if (FAILED(res) == false)
 					{
-						m_pIContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
+						SetViewport();
+						m_Worldmat_dev = XMMatrixIdentity();
 
-						D3D11_VIEWPORT viewport;
-						viewport.Width = (FLOAT)width;
-						viewport.Height = (FLOAT)height;
-						viewport.MinDepth = 0.0f;
-						viewport.MaxDepth = 1.0f;
-						viewport.TopLeftX = 0;
-						viewport.TopLeftY = 0;
-						//m_pIContext->RSSetViewports(1, &viewport);
+						XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
+						XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+						m_Viewmat_dev = XMMatrixLookAtLH(Eye, At, Up);
 
-						//m_Worldmat_dev = XMMatrixIdentity();
-
-						//XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
-						//XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-						//XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-						//m_Viewmat_dev = XMMatrixLookAtLH(Eye, At, Up);
-
-						//m_Projmat_dev = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01F, 100.0F);
+						m_Projmat_dev = XMMatrixPerspectiveFovLH(XM_PIDIV2, m_Width/ (FLOAT)m_Height, 0.01F, 100.0F);
 					}
 				}
 			}
@@ -149,13 +139,31 @@ void CRenderDX11::DrawStart()
 {
 	float ClearColor[4] = { 0.67f, 0.39f, 0.48f, 1.0f }; //red,green,blue,alpha
 	m_pIContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
-
+	std::cout << "s";
 }
 
 void CRenderDX11::DrawEnd()
 {
 	m_pSwapChain->Present(0, 0);
+	std::cout << "e" << std::endl;
 
+}
+
+bool CRenderDX11::CreateRenderTargetView()
+{
+	HRESULT res = S_OK;
+	ID3D11Texture2D* pBackbuffer = nullptr;
+	res = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackbuffer);
+	if (SUCCEEDED(res))
+	{
+		res = m_pDevice->CreateRenderTargetView(pBackbuffer, nullptr, &m_pRenderTargetView);
+		pBackbuffer->Release();
+	}
+	if (pBackbuffer != nullptr) pBackbuffer->Release();
+	m_pIContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
+
+
+	return false;
 }
 
 HRESULT CRenderDX11::Cleanup()
@@ -177,6 +185,19 @@ ID3D11DeviceContext* CRenderDX11::GetDeviceContext()
 {
 	return m_pIContext;
 }
+
+void CRenderDX11::SetViewport()
+{
+	D3D11_VIEWPORT viewport;
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+	viewport.Width = m_Width;
+	viewport.Height = m_Height;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	m_pIContext->RSSetViewports(1, &viewport);
+}
+
 
 bool CRenderDX11::IsInitialized()
 {

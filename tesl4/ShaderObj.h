@@ -1,10 +1,11 @@
 #pragma once
+#include "Actor.h"
 #include "Shader.h"
 class CShaderObj :
 	public CShader
 {
 
-	std::vector<CActor*> m_objects;
+	std::vector<CActor*> m_actors;
 
 
 public:

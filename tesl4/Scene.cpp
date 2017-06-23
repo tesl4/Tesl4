@@ -17,14 +17,14 @@ void CScene::BuildActor()
 {
 	CShaderObj *newShaderObj = new CShaderObj();
 	newShaderObj->CreateShader();
-	m_ShaderObjects->push_back(newShaderObj);
 	
 	CTriangles *triangleMesh = new CTriangles();
+	triangleMesh->Init();
 	CActor *newActor = new CActor();
 	
 	newActor->SetMesh(triangleMesh);
 	
-	
+	newShaderObj->AddActor(newActor);
 	m_ShaderObjects->push_back(newShaderObj);
 	m_Actors->push_back(newActor);
 	
@@ -40,4 +40,12 @@ void CScene::Release()
 		it->Release();
 	}
 
+}
+
+void CScene::Render()
+{
+	for (auto it : *m_ShaderObjects)
+	{
+		it->Render();
+	}
 }

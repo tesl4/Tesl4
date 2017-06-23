@@ -3,6 +3,16 @@
 
 CMesh::CMesh()
 {
+	m_RefCount = 0;
+}
+
+CMesh::~CMesh()
+{
+	if (m_VertextBuffer != nullptr) m_VertextBuffer->Release();
+}
+
+void CMesh::Init()
+{
 	m_strides = sizeof(CVertex);
 	m_offset = 0;
 	m_PrimeTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -14,18 +24,12 @@ CMesh::CMesh()
 	bufferDesc.ByteWidth = sizeof(CVertex) * m_Vertices.size();
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
-	
+
 	D3D11_SUBRESOURCE_DATA bufferData;
 	ZeroMemory(&bufferData, sizeof(D3D11_SUBRESOURCE_DATA));
 	bufferData.pSysMem = &m_Vertices[0];
 	CRenderDX11::GetInstance()->GetDevice()->CreateBuffer(&bufferDesc, &bufferData, &m_VertextBuffer);
 
-	m_strides = sizeof(CVertex);
-}
-
-CMesh::~CMesh()
-{
-	if (m_VertextBuffer != nullptr) m_VertextBuffer->Release();
 }
 
 void CMesh::Render()

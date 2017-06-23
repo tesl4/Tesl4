@@ -17,10 +17,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 
 // 이 코드 모듈에 들어 있는 함수의 정방향 선언입니다.
 HRESULT             InitInstance(HINSTANCE hInstance, int nCmdShow);
-HRESULT				InitDevice();
-void				CleanDevice();
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-void				Render();
 HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobs);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR    lpCmdLine, _In_ int       nCmdShow)
@@ -36,6 +33,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	CTimeMgr* m_time = new CTimeMgr();
 	m_time->CapFPS(60);
 
+	CScene *m_Scene = new CScene();
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
@@ -56,7 +54,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	}
 	else
 	{
-		
+		m_Scene->BuildActor();
 	}
 
 	// Main message loop
@@ -72,11 +70,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		{
 			UINT needSleep = m_time->TimeUpdate();
 			CRenderDX11::GetInstance()->DrawStart();
-
-			//std::cout << "sex" << std::endl;
+			m_Scene->Render();
 			CRenderDX11::GetInstance()->DrawEnd();
 		}
 	} 
+	m_Scene->Release();
 	CRenderDX11::GetInstance()->Cleanup();
 
 	return (int)msg.wParam;
@@ -152,6 +150,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+	case WM_SIZE:
+		break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

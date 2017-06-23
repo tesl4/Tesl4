@@ -31,15 +31,9 @@ void CShader::InitVertexShader(WCHAR * _fileName, LPCSTR _entryPoint, LPCSTR _sh
 			}
 			vsBlob->Release();
 		}
-		else
-		{
-
-		}
 	}
 	else
 	{
-		
-
 		MessageBox(g_hWnd, L"VertexShader File ¾øÀ½", L"Error", MB_OK);
 	}
 
@@ -54,11 +48,6 @@ void CShader::InitPixelShader(WCHAR * _fileName, LPCSTR _entryPoint, LPCSTR _sha
 		{
 			
 		}
-		else
-		{
-
-		}
-
 		psBlob->Release();
 	}
 	else
@@ -102,4 +91,7 @@ void CShader::CreateShader()
 
 void CShader::Render()
 {
+	if (m_VertexLayout != null) CRenderDX11::GetInstance()->GetDeviceContext()->IASetInputLayout(m_VertexLayout);
+	if (m_VertexShader != null) CRenderDX11::GetInstance()->GetDeviceContext()->VSSetShader(m_VertexShader, nullptr, 0);
+	if (m_VertexLayout != null) CRenderDX11::GetInstance()->GetDeviceContext()->PSSetShader(m_PixelShader, nullptr, 0);
 }

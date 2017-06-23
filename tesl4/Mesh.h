@@ -1,13 +1,14 @@
 #include "../../stdafx.h"
 #pragma once
+#include "Vertex.h"
 class CMesh
 {
 private:
 	UINT m_RefCount;
 
 protected:
-	std::vector<TVertex> m_Vertices;
-	std::vector<DWORD> m_Indexes;
+	std::vector<CVertex>	m_Vertices;
+	std::vector<DWORD>		m_Indexes;
 	
 	UINT m_strides;
 	UINT m_offset;
@@ -21,6 +22,7 @@ public:
 	CMesh();
 	virtual ~CMesh();
 
+	virtual void Init();
 
 	virtual void Render();
 	
